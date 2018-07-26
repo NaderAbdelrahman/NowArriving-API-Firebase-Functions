@@ -10,20 +10,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const functions = require("firebase-functions");
 const Mta = require("mta-gtfs");
+const Cors = require("cors");
+const cors = Cors({
+    origin: true
+});
 const mta = new Mta({
     key: "9855a16a7f459ecc79118f055d32996b",
     feed_id: 1
 });
 exports.viewAllStops = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
-    const resp = yield mta.stop();
-    response.send(resp);
+    return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
+        const resp = yield mta.stop();
+        response.send(resp);
+    }));
 }));
 exports.viewSelectedStops = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
-    const resp = yield mta.stop(request.query.stopID);
-    response.send(resp);
+    return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
+        const resp = yield mta.stop(request.query.stopID);
+        response.send(resp);
+    }));
 }));
 exports.stopSchedule = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
-    const resp = yield mta.schedule(request.query.stopID);
-    response.send(resp);
+    return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
+        const resp = yield mta.schedule(request.query.stopID);
+        response.send(resp);
+    }));
 }));
 //# sourceMappingURL=index.js.map
