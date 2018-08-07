@@ -31,8 +31,63 @@ exports.viewSelectedStops = functions.https.onRequest((request, response) => __a
     }));
 }));
 exports.stopSchedule = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
+    console.log("------------------------------------------------------");
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
-        const resp = yield mta.schedule(request.query.stopID);
+        let feed = 0;
+        switch (request.query.line) {
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+            case "S": {
+                feed = 1;
+                break;
+            }
+            case "L": {
+                feed = 2;
+                break;
+            }
+            case "N":
+            case "Q":
+            case "R":
+            case "W": {
+                feed = 16;
+                break;
+            }
+            case "A":
+            case "C":
+            case "E": {
+                feed = 26;
+                break;
+            }
+            case "B":
+            case "D":
+            case "F":
+            case "M": {
+                feed = 21;
+                break;
+            }
+            case "SIR": {
+                feed = 11;
+                break;
+            }
+            case "G": {
+                feed = 31;
+                break;
+            }
+            case "J":
+            case "Z": {
+                feed = 36;
+                break;
+            }
+            case "7": {
+                feed = 51;
+                break;
+            }
+        }
+        const resp = yield mta.schedule(request.query.stopID, feed);
         response.send(resp);
     }));
 }));
