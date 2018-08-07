@@ -15,8 +15,7 @@ const cors = Cors({
     origin: true
 });
 const mta = new Mta({
-    key: "9855a16a7f459ecc79118f055d32996b",
-    feed_id: 1
+    key: "9855a16a7f459ecc79118f055d32996b"
 });
 exports.viewAllStops = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
@@ -31,7 +30,6 @@ exports.viewSelectedStops = functions.https.onRequest((request, response) => __a
     }));
 }));
 exports.stopSchedule = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
-    console.log("------------------------------------------------------");
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
         let feed = 0;
         switch (request.query.line) {
@@ -69,6 +67,7 @@ exports.stopSchedule = functions.https.onRequest((request, response) => __awaite
                 feed = 21;
                 break;
             }
+            // todo: SIR Schedule
             case "SIR": {
                 feed = 11;
                 break;

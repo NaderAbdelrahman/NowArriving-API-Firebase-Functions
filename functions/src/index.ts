@@ -6,8 +6,7 @@ const cors = Cors({
 });
 
 const mta = new Mta({
-    key: "9855a16a7f459ecc79118f055d32996b",
-    feed_id: 1
+    key: "9855a16a7f459ecc79118f055d32996b"
 });
 
 export const viewAllStops = functions.https.onRequest(async (request, response) => {
