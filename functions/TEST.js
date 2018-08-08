@@ -1,29 +1,29 @@
-// import {Message} from "protobufjs";
-
-const fs = require('fs');
-const axios = require('axios');
+const http = require('http');
 const protobuf = require('protobufjs');
-// const mta = new Mta({
-//     key: "9855a16a7f459ecc79118f055d32996b"
-// });
-//
-// async function test() {
-//     // console.log(JSON.stringify(await mta.schedule("124", 1)));
-// 	console.log(JSON.stringify(await mta.status('subway')));
-// }
+
 let key = "9855a16a7f459ecc79118f055d32996b";
 
 let feed1 = `http://datamine.mta.info/mta_esi.php?key=${key}&feed_id=1`;
 
-async function test() {
+async function feed1GTFS() {
 
-	let tmp = await axios.get(feed1);
-	// console.log(tmp.data);
-	protobuf.Message.decode(tmp.data);
+	let transit = protobuf.load("nyct-subway.proto");
+		// .build("transit_realtime");
 
-	// let tmp = (await axios.get(feed1)).verify();
-	// fs.writeFileSync("GTFSOUT.html", tmp);
+	http.get(feed1, parse);
+
+	function parse(res) {
+		let data = [];
+		res.on("data", (chunk) => {
+			data.push(chunk);
+		});
+		res.on("end", () => {
+			data = Buffer.concat(data);
+			let msg = transit.decode(data);
+			console.log(msg);
+		});
+	}
 
 }
+feed1GTFS();
 
-test();
