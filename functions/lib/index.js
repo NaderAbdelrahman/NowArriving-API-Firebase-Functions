@@ -11,18 +11,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const functions = require("firebase-functions");
 const Mta = require("mta-gtfs");
 const Cors = require("cors");
+const got = require("got");
 const cors = Cors({
     origin: true
 });
 const mta = new Mta({
     key: "9855a16a7f459ecc79118f055d32996b"
 });
-exports.viewAllStops = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
+const mtaRoute = "http://traintimelb-367443097.us-east-1.elb.amazonaws.com/";
+const CACHE_DURATION = 180e3;
+const cache = {};
+exports.getStopsByLine = functions.https.onRequest((request, response) => {
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
-        const resp = yield mta.stop();
+        const line = request.query.line;
+        if (cache[line] == null || cache[line].timestamp < Date.now() + CACHE_DURATION) {
+            const { body: bodyJSON } = yield got(`${mtaRoute}getStationsByLine/${line}`);
+            cache[line] = {
+                bodyJSON,
+                timestamp: Date.now()
+            };
+        }
+        const resp = cache[line].bodyJSON;
         response.send(resp);
     }));
-}));
+});
 exports.viewSelectedStops = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
         const resp = yield mta.stop(request.query.stopID);

@@ -1,6 +1,8 @@
 import * as functions from 'firebase-functions';
 import * as Mta from 'mta-gtfs';
 import * as Cors from 'cors';
+import * as got from 'got';
+
 const cors = Cors({
     origin:true
 });
@@ -9,11 +11,30 @@ const mta = new Mta({
     key: "9855a16a7f459ecc79118f055d32996b"
 });
 
-export const viewAllStops = functions.https.onRequest(async (request, response) => {
-    return cors(request, response, async () =>{
-        const resp = await mta.stop();
+const mtaRoute = "http://traintimelb-367443097.us-east-1.elb.amazonaws.com/";
+
+const CACHE_DURATION = 180e3;
+
+interface ExpirableCacheEntry {
+    bodyJSON: string;
+    timestamp: number;
+}
+
+const cache: Record<string, ExpirableCacheEntry> = {};
+
+export const getStopsByLine = functions.https.onRequest((request, response) => {
+    return cors (request, response, async () => {
+        const line = request.query.line;
+        if (cache[line] == null || cache[line].timestamp < Date.now() + CACHE_DURATION) {
+            const { body: bodyJSON } = await got(`${mtaRoute}getStationsByLine/${line}`);
+            cache[line] = {
+                bodyJSON,
+                timestamp: Date.now()
+            };
+        }
+        const resp = cache[line].bodyJSON;
         response.send(resp);
-    });
+    })
 });
 
 export const viewSelectedStops = functions.https.onRequest(async (request, response) => {
