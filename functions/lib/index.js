@@ -12,6 +12,7 @@ const functions = require("firebase-functions");
 const Mta = require("mta-gtfs");
 const Cors = require("cors");
 const got = require("got");
+let counter = 0;
 const cors = Cors({
     origin: true
 });
@@ -19,20 +20,27 @@ const mta = new Mta({
     key: "9855a16a7f459ecc79118f055d32996b"
 });
 const mtaRoute = "http://traintimelb-367443097.us-east-1.elb.amazonaws.com/";
-const CACHE_DURATION = 180e3;
+// 20 Minutes = 1200000 Milliseconds
+const CACHE_LIFE = 1200000;
 const cache = {};
 exports.getStopsByLine = functions.https.onRequest((request, response) => {
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {
+        counter++;
         const line = request.query.line;
-        if (cache[line] == null || cache[line].timestamp < Date.now() + CACHE_DURATION) {
+        if (cache[line] == null || Date.now() >= cache[line].life) {
             const { body: bodyJSON } = yield got(`${mtaRoute}getStationsByLine/${line}`);
             cache[line] = {
                 bodyJSON,
-                timestamp: Date.now()
+                life: Date.now() + CACHE_LIFE
             };
+            console.log("Fetching!", counter);
+            response.send(cache[line].bodyJSON);
         }
-        const resp = cache[line].bodyJSON;
-        response.send(resp);
+        else if (cache[line].life > Date.now()) {
+            console.log("From Cache!");
+            response.send(cache[line].bodyJSON);
+        }
+        // response.send(cache[line].bodyJSON);
     }));
 });
 exports.viewSelectedStops = functions.https.onRequest((request, response) => __awaiter(this, void 0, void 0, function* () {
@@ -50,8 +58,7 @@ exports.stopSchedule = functions.https.onRequest((request, response) => __awaite
             case "3":
             case "4":
             case "5":
-            case "6":
-            case "S": {
+            case "6": {
                 feed = 1;
                 break;
             }
@@ -68,7 +75,8 @@ exports.stopSchedule = functions.https.onRequest((request, response) => __awaite
             }
             case "A":
             case "C":
-            case "E": {
+            case "E":
+            case "S": {
                 feed = 26;
                 break;
             }
@@ -99,6 +107,7 @@ exports.stopSchedule = functions.https.onRequest((request, response) => __awaite
             }
         }
         const resp = yield mta.schedule(request.query.stopID, feed);
+        console.log(resp);
         response.send(resp);
     }));
 }));

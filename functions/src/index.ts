@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import * as Mta from 'mta-gtfs';
 import * as Cors from 'cors';
 import * as got from 'got';
-
+let counter = 0;
 const cors = Cors({
     origin:true
 });
@@ -13,27 +13,33 @@ const mta = new Mta({
 
 const mtaRoute = "http://traintimelb-367443097.us-east-1.elb.amazonaws.com/";
 
-const CACHE_DURATION = 180e3;
+// 20 Minutes = 1200000 Milliseconds
+const CACHE_LIFE = 1200000;
 
 interface ExpirableCacheEntry {
     bodyJSON: string;
-    timestamp: number;
+    life: number;
 }
 
 const cache: Record<string, ExpirableCacheEntry> = {};
 
 export const getStopsByLine = functions.https.onRequest((request, response) => {
     return cors (request, response, async () => {
+        counter++;
         const line = request.query.line;
-        if (cache[line] == null || cache[line].timestamp < Date.now() + CACHE_DURATION) {
+        if (cache[line] == null || Date.now() >= cache[line].life) {
             const { body: bodyJSON } = await got(`${mtaRoute}getStationsByLine/${line}`);
             cache[line] = {
                 bodyJSON,
-                timestamp: Date.now()
+                life: Date.now() + CACHE_LIFE
             };
+            console.log("Fetching!", counter);
+            response.send(cache[line].bodyJSON);
+        }else if(cache[line].life > Date.now()) {
+            console.log("From Cache!");
+            response.send(cache[line].bodyJSON);
         }
-        const resp = cache[line].bodyJSON;
-        response.send(resp);
+        // response.send(cache[line].bodyJSON);
     })
 });
 
@@ -54,8 +60,7 @@ export const stopSchedule = functions.https.onRequest(async (request, response) 
             case "3":
             case "4":
             case "5":
-            case "6":
-            case "S": {
+            case "6": {
                 feed = 1;
                 break;
             }
@@ -75,7 +80,8 @@ export const stopSchedule = functions.https.onRequest(async (request, response) 
 
             case "A":
             case "C":
-            case "E": {
+            case "E":
+            case "S": {
                 feed = 26;
                 break;
             }
@@ -112,6 +118,7 @@ export const stopSchedule = functions.https.onRequest(async (request, response) 
 
         }
         const resp = await mta.schedule(request.query.stopID, feed);
+        console.log(resp);
         response.send(resp);
     });
 });
