@@ -20,8 +20,8 @@ const mta = new Mta({
     key: "9855a16a7f459ecc79118f055d32996b"
 });
 const mtaRoute = "http://traintimelb-367443097.us-east-1.elb.amazonaws.com/";
-// 20 Minutes = 1200000 Milliseconds
-const CACHE_LIFE = 1200000;
+// 2 hrs = 7200000 milliseconds
+const CACHE_LIFE = 7200000;
 const cache = {};
 exports.getStopsByLine = functions.https.onRequest((request, response) => {
     return cors(request, response, () => __awaiter(this, void 0, void 0, function* () {

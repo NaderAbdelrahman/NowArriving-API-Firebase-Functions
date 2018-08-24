@@ -13,8 +13,8 @@ const mta = new Mta({
 
 const mtaRoute = "http://traintimelb-367443097.us-east-1.elb.amazonaws.com/";
 
-// 20 Minutes = 1200000 Milliseconds
-const CACHE_LIFE = 1200000;
+// 2 hrs = 7200000 milliseconds
+const CACHE_LIFE = 7200000;
 
 interface ExpirableCacheEntry {
     bodyJSON: string;
