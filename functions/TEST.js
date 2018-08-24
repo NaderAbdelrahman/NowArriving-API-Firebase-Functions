@@ -1,5 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 var Mta = require("mta-gtfs");
 var mta = new Mta({
     key: "9855a16a7f459ecc79118f055d32996b"
