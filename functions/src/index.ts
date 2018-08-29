@@ -21,6 +21,7 @@ interface ExpirableCacheEntry {
     life: number;
 }
 
+
 const cache: Record<string, ExpirableCacheEntry> = {};
 
 export const getStopsByLine = functions.https.onRequest((request, response) => {
